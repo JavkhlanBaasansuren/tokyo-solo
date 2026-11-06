@@ -256,6 +256,47 @@ a.solo.go:hover { text-decoration: underline; }
   .mvli { padding-left: 12px; }
 }
 @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+/* Navigator */
+.nv-fab { position: fixed; z-index: 40; right: max(16px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); display: flex; align-items: center; gap: 8px; max-width: calc(100vw - 32px); border: 0; border-radius: 999px; padding: 11px 16px; background: var(--accent); color: var(--bg); font: 700 14px var(--font-display); box-shadow: 0 6px 20px rgba(0,0,0,.22); cursor: pointer; }
+.nv-fab-sub { font-weight: 400; font-size: 12px; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 46vw; }
+.nv-fab-sub:empty { display: none; }
+.nv-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fd38d; box-shadow: 0 0 0 3px rgba(95,211,141,.3); flex: none; }
+.nv { position: fixed; inset: 0; z-index: 60; background: rgba(10,14,22,.55); display: flex; align-items: flex-end; justify-content: center; }
+.nv-card { background: var(--bg); color: var(--fg); width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; border-radius: 16px 16px 0 0; padding: 16px max(16px, env(safe-area-inset-left, 0px)) max(18px, env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; gap: 12px; }
+@media (min-width: 640px) { .nv { align-items: center; } .nv-card { border-radius: 16px; } }
+.nv-top { display: flex; align-items: center; gap: 10px; }
+.nv-top h2 { font-size: 19px; }
+.nv-clock { color: var(--muted); font-size: 13px; margin-left: auto; }
+.nv-x { border: 0; background: var(--surface); color: var(--fg); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.nv-days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.nv-days button { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 5px 11px; font: 500 12.5px var(--font-body); cursor: pointer; }
+.nv-days button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+.nv-body { display: flex; flex-direction: column; gap: 10px; }
+.nv-now, .nv-next { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.nv-next { border-color: var(--accent); }
+.nv-tag { font-size: 11.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.nv-body h3 { font-size: 17px; }
+.nv-body h3 em { font-style: normal; font-weight: 500; font-size: 11.5px; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; vertical-align: middle; }
+.nv-tip { color: var(--muted); font-size: 13px; }
+.nv-steps { list-style: none; margin: 2px 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.nv-steps li { display: flex; gap: 8px; align-items: flex-start; }
+.nv-steps .ln { flex: none; margin-top: 1px; }
+.nv-late, .nv-warn, .nv-ok { border-radius: 8px; padding: 6px 10px; font-size: 13px; font-weight: 600; }
+.nv-late { background: #fde8e6; color: #9b2218; }
+.nv-warn { background: var(--b-bg); color: var(--b); }
+.nv-ok { background: var(--c-bg); color: var(--c); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nv-late { background: #3a1714; color: #f3a59c; } }
+:root[data-theme="dark"] .nv-late { background: #3a1714; color: #f3a59c; }
+.nv-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+.nv-go { flex: 1 1 auto; text-align: center; background: var(--accent); color: var(--bg); text-decoration: none; font-weight: 600; border-radius: 10px; padding: 11px 14px; }
+.nv-sec { text-align: center; border: 1px solid var(--line); background: var(--bg); color: var(--fg); text-decoration: none; border-radius: 10px; padding: 11px 14px; font-size: 13.5px; }
+.nv-home { font-size: 13px; text-align: center; padding: 6px; }
+.nv-msg { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.nv-note { font-size: 12.5px; color: var(--muted); }
+.nv-gps { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+.nv-gps::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.nv-gps.on::before { background: #3fb871; } .nv-gps.off::before { background: #d9534f; }
+.wrap { padding-bottom: 96px; }
 </style>
 
 <div class="wrap">
@@ -638,5 +679,236 @@ a.solo.go:hover { text-decoration: underline; }
       try { localStorage.setItem(K, JSON.stringify(s)); } catch (e) {}
     });
   });
+})();
+</script>
+
+<!-- Navigator: GPS + цагаар дараагийн газрыг заана -->
+<button class="nv-fab" type="button" id="nv-open" aria-haspopup="dialog"><span class="nv-dot" aria-hidden="true"></span><span>Navigator</span><span class="nv-fab-sub num" id="nv-fab-sub"></span></button>
+<div class="nv" id="nv" role="dialog" aria-modal="true" aria-labelledby="nv-h" hidden>
+  <div class="nv-card">
+    <div class="nv-top">
+      <h2 id="nv-h">Navigator</h2>
+      <span class="nv-clock num" id="nv-clock"></span>
+      <button class="nv-x" type="button" id="nv-x" aria-label="Хаах">×</button>
+    </div>
+    <div class="nv-days" id="nv-days" role="tablist" aria-label="Өдөр сонгох"></div>
+    <div class="nv-body" id="nv-body"></div>
+    <div class="nv-gps" id="nv-gps"></div>
+  </div>
+</div>
+<script>
+(function () {
+  // Байр: Ojima буудал (Toei Shinjuku шугам). Бусад нь хуудсан дахь газрууд.
+  var HOME = { n: 'Байр (Ojima буудал)', p: [35.6898, 139.8270] };
+  var DAYS = [
+    { d: '2026-11-07', l: '11/7 Бя', sec: 'g7', stops: [
+      { s: '14:30', e: '16:30', n: 'Нарита нисэх буудал', p: [35.7720, 140.3929], g: 1,
+        how: ['Aero Mongolia · 08:55–14:30'], tip: 'Welcome Suica аваад 7-Eleven ATM-ээс иен гарга.' },
+      { s: '20:15', e: '20:45', n: 'Kyu-Nakagawa голын эрэг', p: [35.6897, 139.8355],
+        how: ['Charter автобусаар байр · 18:00 check-in · 19:00 оройн хоол', 'Алх: байрнаас зүүн тийш, Higashi-ojima гүүр рүү · 15 мин'], tip: 'Салхигүй бол усан дээр Skytree-ийн тусгал.' }
+    ], home: ['Алх: голын эргээр хойш, баруун тийш эргээд байр руу · 20 мин', '7-Eleven-оос маргаашийн өглөөний цай'] },
+    { d: '2026-11-08', l: '11/8 Ня', sec: 'eve', stops: [
+      { s: '10:30', e: '13:30', n: 'Asakusa · Senso-ji', p: [35.7148, 139.7967], g: 1,
+        how: ['S Ojima → Sumiyoshi · 2 буудал · «Shinjuku» чиглэл', 'Z Sumiyoshi → Oshiage · 2 буудал · «Oshiage» чиглэл', 'A Oshiage → Asakusa · 1 буудал · «Nishi-magome» чиглэл'], tip: '12:30-д өдрийн хоол.' },
+      { s: '14:00', e: '15:00', n: 'Tokyo Skytree', p: [35.7101, 139.8107], g: 1, hard: 1,
+        how: ['Алх: Sumida голоор Skytree руу · 20 мин'], tip: '14:00 захиалгатай, хоцорч болохгүй.' },
+      { s: '16:00', e: '18:30', n: 'Hachiko · Shibuya crossing', p: [35.6595, 139.7005], g: 1,
+        how: ['Z Oshiage → Shibuya · 13 буудал · «Chuo-rinkan» чиглэл · сольж суухгүй · ≈35 мин'], tip: '18:30-д групп тарна.' },
+      { s: '19:25', e: '20:20', n: 'Kameido · оройн хоол', p: [35.6973, 139.8263],
+        how: ['Z Shibuya → Sumiyoshi · 11 буудал · «Oshiage» чиглэл · ≈30 мин', 'S Sumiyoshi → Ojima · 2 буудал · «Motoyawata» чиглэл', 'Алх: Meiji-dori-гоор хойд зүг, Kameido руу · 15 мин'], tip: 'Kameido Gyoza эрт хаадаг. Хаалттай бол Kameido Clock.' },
+      { s: '20:30', e: '20:50', n: 'Kameido Tenjin', p: [35.7027, 139.8197],
+        how: ['Алх: Kuramaebashi-dori-гоор баруун тийш · 12 мин'], tip: 'Хаалга хаагдсан бол Yokojukken голын гүүрээс Skytree-г хар.' }
+    ], home: ['Алх: Yokojukken голын эргээр урагш, байр руу · 25 мин'] },
+    { d: '2026-11-09', l: '11/9 Да', sec: 'd1', stops: [
+      { s: '07:30', e: '08:30', n: 'Tsukiji гадна зах', p: [35.6655, 139.7707],
+        how: ['S Ojima → Morishita · 4 буудал · «Shinjuku» чиглэл', 'E Morishita → Tsukijishijo · 5 буудал · «Tsukishima» чиглэл · A1 гарц', 'Алх: зах руу · 5 мин'], tip: 'Өглөөний цай: тамагояки, суши.' },
+      { s: '08:35', e: '08:55', n: 'Tsukiji Hongan-ji', p: [35.6665, 139.7724],
+        how: ['Алх: захын хажууд · 3 мин'], tip: '' },
+      { s: '09:10', e: '09:55', n: 'Hama-rikyu цэцэрлэг', p: [35.6623, 139.7637],
+        how: ['Алх: Shiodome чиглэлд, Otemon хаалга · 15 мин'], tip: 'Нуурын цайны байшинд матча ≈¥1,000.' },
+      { s: '10:15', e: '11:15', n: 'Ginza', p: [35.6717, 139.7650],
+        how: ['Алх: Shiodome-оор дамжаад Ginza руу · 20 мин'], tip: 'Starbucks Ginza: эхнэрийн сав.' },
+      { s: '11:40', e: '13:10', n: 'teamLab Planets', p: [35.6491, 139.7898], hard: 1,
+        how: ['Y Ginza-itchome → Toyosu · 3 буудал · «Shin-kiba» чиглэл', 'Алх: teamLab руу · 10 мин'], tip: '11:30-ийн тасалбар. Өмд шамлахад бэлэн бай.' },
+      { s: '13:20', e: '14:20', n: 'Senkyaku Banrai', p: [35.6447, 139.7810],
+        how: ['Алх: Senkyaku Banrai руу · 10 мин'], tip: 'Өдрийн хоол, үнэгүй хөлийн халуун ус.' },
+      { s: '14:45', e: '17:00', n: 'Odaiba далайн эрэг', p: [35.6300, 139.7750],
+        how: ['U Shijo-mae → Odaiba-kaihinkoen · «Shimbashi» чиглэл'], tip: 'Нар ≈16:40-д жаргана.' },
+      { s: '17:50', e: '18:40', n: 'Ameyoko · Niki no Kashi', p: [35.7090, 139.7740], hard: 1,
+        how: ['U Odaiba-kaihinkoen → Shimbashi', 'G Shimbashi → Ueno-hirokoji · 7 буудал · «Asakusa» чиглэл'], tip: 'Niki no Kashi 20:00-д хаана. OS Drug-д бэлнээр.' },
+      { s: '18:55', e: '21:30', n: 'Akihabara', p: [35.6984, 139.7731],
+        how: ['Алх: Chuo-dori-гоор урагш · 15 мин'], tip: 'Gachapon Kaikan 20:00 хүртэл, дараа нь Yodobashi, Don Quijote.' }
+    ], home: ['Алх: Iwamotocho буудал · 8 мин', 'S Iwamotocho → Ojima · 7 буудал · «Motoyawata» чиглэл · сольж суухгүй'] },
+    { d: '2026-11-10', l: '11/10 Мя', sec: 'g10', stops: [
+      { s: '09:00', e: '10:15', n: 'Fuji Subaru Line 5th Station', p: [35.3955, 138.7330], g: 1,
+        how: ['Charter автобус · 06:00 байрнаас'], tip: 'Дулаан хүрэм ав.' },
+      { s: '11:30', e: '16:00', n: 'Oishi Park · Momiji Festival', p: [35.5244, 138.7480], g: 1,
+        how: ['Charter автобус · 10:15–11:15'], tip: '16:00-д автобус Токио руу.' }
+    ], home: ['Charter автобус · 16:00–20:00'] },
+    { d: '2026-11-11', l: '11/11 Лх', sec: 'd2', stops: [
+      { s: '08:15', e: '09:10', n: 'Meiji Jingu', p: [35.6764, 139.6993],
+        how: ['S Ojima → Shinjuku-sanchome · 13 буудал · «Shinjuku» чиглэл · ≈30 мин', 'F Shinjuku-sanchome → Meiji-jingumae · 2 буудал · «Shibuya» чиглэл', 'Алх: өмнөд хаалга · 5 мин'], tip: '' },
+      { s: '09:20', e: '09:50', n: 'Yoyogi цэцэрлэгт хүрээлэн', p: [35.6717, 139.6949],
+        how: ['Алх: баруун хаалгаар · 10 мин'], tip: '' },
+      { s: '10:00', e: '10:45', n: 'Takeshita гудамж', p: [35.6716, 139.7031],
+        how: ['Алх: Harajuku буудлын хажуугаар · 10 мин'], tip: 'Daiso, 3COINS: баллуур, үсний хэрэгсэл.' },
+      { s: '10:50', e: '11:45', n: 'Omotesando · Kiddy Land', p: [35.6688, 139.7066],
+        how: ['Алх: Omotesando өргөн чөлөө · 5 мин'], tip: 'Anpanman, Miffy, Sanrio, Chiikawa нэг дор.' },
+      { s: '12:00', e: '12:50', n: 'Miyashita Park', p: [35.6620, 139.7020],
+        how: ['Алх: Cat Street-ээр Shibuya руу · 15 мин'], tip: 'Shibuya Yokocho-д өдрийн хоол.' },
+      { s: '12:55', e: '14:00', n: 'Shibuya Parco', p: [35.6622, 139.6987],
+        how: ['Алх: Koen-dori-гоор · 5 мин'], tip: '6F: Pokémon Center, Nintendo.' },
+      { s: '14:20', e: '15:30', n: 'Shinjuku Gyoen', p: [35.6852, 139.7101], hard: 1,
+        how: ['F Shibuya → Shinjuku-sanchome · 3 буудал · «Ikebukuro» чиглэл', 'Алх: Shinjuku хаалга · 5 мин'], tip: '15:30-аас өмнө ор, 16:00-д хаана.' },
+      { s: '15:55', e: '17:45', n: 'Tocho харах тавцан', p: [35.6896, 139.6917],
+        how: ['Алх: Shinjuku-gyoemmae буудал · 5 мин', 'M Shinjuku-gyoemmae → Nishi-shinjuku · 3 буудал · «Ogikubo» чиглэл', 'Алх: 1-р байр · 8 мин'], tip: '16:40 нар жаргана. 17:30-аас гэрлийн шоу.' },
+      { s: '18:00', e: '19:00', n: 'Omoide Yokocho', p: [35.6929, 139.6994],
+        how: ['Алх: баруун гарц руу · 15 мин'], tip: '' },
+      { s: '19:10', e: '19:35', n: 'Kabukicho · Godzilla', p: [35.6950, 139.7020],
+        how: ['Алх: төмөр замын доогуур · 10 мин'], tip: 'Урьж дуудах хүнийг бүү дага.' },
+      { s: '19:45', e: '22:00', n: 'Golden Gai', p: [35.6940, 139.7046],
+        how: ['Алх: Golden Gai руу · 8 мин'], tip: '' }
+    ], home: ['Алх: Shinjuku-sanchome буудал · 5 мин', 'S Shinjuku-sanchome → Ojima · «Motoyawata» чиглэл · сүүлийн галт тэрэг ≈00:00'] },
+    { d: '2026-11-12', l: '11/12 Пү', sec: 'g12', stops: [
+      { s: '12:00', e: '15:30', n: 'Нарита · татвар буцаалт', p: [35.7720, 140.3929], g: 1, hard: 1,
+        how: ['09:00 Airbnb хүлээлгэж өгнө', 'Charter автобус · 10:00–12:00'], tip: 'Эхлээд татвар буцаалт, дараа нь Duty Free.' }
+    ], home: null }
+  ];
+  var LC = { S: '#6CBB5A', Z: '#8F76D6', A: '#E85298', E: '#B6007A', Y: '#C1A470', U: '#00A0DE', G: '#F39700', F: '#9C5E31', M: '#F62E36' };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var box = $('nv'), body = $('nv-body'), gpsEl = $('nv-gps'), daysEl = $('nv-days');
+  var pos = null, gpsErr = '', watch = null, pick = null, tick = null;
+
+  function jst() { var t = new Date(Date.now() + 9 * 3600e3); return { d: t.toISOString().slice(0, 10), m: t.getUTCHours() * 60 + t.getUTCMinutes(), hm: t.toISOString().slice(11, 16) }; }
+  function mins(hm) { var a = hm.split(':'); return +a[0] * 60 + +a[1]; }
+  function fmt(m) { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + ' ц ' + (m % 60) + ' мин' : m + ' мин'; }
+  function dist(a, b) {
+    var R = 6371e3, r = Math.PI / 180, x = (b[0] - a[0]) * r, y = (b[1] - a[1]) * r;
+    var h = Math.sin(x / 2) * Math.sin(x / 2) + Math.cos(a[0] * r) * Math.cos(b[0] * r) * Math.sin(y / 2) * Math.sin(y / 2);
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+  function km(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' м' : (m / 1000).toFixed(1) + ' км'; }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function gmaps(p, walk) { return 'https://www.google.com/maps/dir/?api=1&destination=' + p[0] + ',' + p[1] + '&travelmode=' + (walk ? 'walking' : 'transit'); }
+  function steps(list) {
+    return '<ol class="nv-steps">' + list.map(function (t) {
+      var k = t.charAt(0), c = LC[k], walk = /^Алх:/.test(t);
+      if (c && t.charAt(1) === ' ') return '<li><i class="ln" style="--lc:' + c + '">' + k + '</i><span>' + esc(t.slice(2)) + '</span></li>';
+      return '<li><i class="ln walk">' + (walk ? 'алх' : '·') + '</i><span>' + esc(walk ? t.slice(5) : t) + '</span></li>';
+    }).join('') + '</ol>';
+  }
+
+  // Тухайн өдөр, цагт юу хийх ёстойг тодорхойлно
+  function state(day, m) {
+    var st = day.stops;
+    for (var i = 0; i < st.length; i++) {
+      var s = mins(st[i].s), e = mins(st[i].e);
+      if (m < s) return { mode: 'go', to: st[i], idx: i, how: st[i].how, late: 0, left: s - m };
+      if (m <= e) return { mode: 'at', at: st[i], idx: i, left: e - m, next: st[i + 1] || null };
+    }
+    return { mode: 'home' };
+  }
+
+  function render() {
+    var now = jst(), day = null, i;
+    for (i = 0; i < DAYS.length; i++) if (DAYS[i].d === (pick || now.d)) day = DAYS[i];
+    var live = !pick || pick === now.d;
+    $('nv-clock').textContent = 'Токио ' + now.hm;
+    [].forEach.call(daysEl.children, function (b) { b.setAttribute('aria-selected', b.dataset.d === (day ? day.d : '') ? 'true' : 'false'); });
+
+    if (!day) {
+      var before = now.d < DAYS[0].d;
+      body.innerHTML = '<p class="nv-msg">' + (before ? 'Аялал 11/7-нд эхэлнэ. Дээрээс өдрөө сонгоод хуваарийг урьдчилан хар.' : 'Аялал дууслаа. Сайн буцаарай!') + '</p>';
+      return;
+    }
+    var m = live ? now.m : mins(day.stops[0].s) - 30;
+    var s = state(day, m), html = '';
+    // Хуваарийн дагуу энд байх ёстой ч GPS-ээр хол байвал тийшээ явж байна гэж үзнэ
+    if (s.mode === 'at' && live && pos && dist(pos, s.at.p) > 400) s = { mode: 'go', to: s.at, idx: s.idx, how: s.at.how, left: mins(s.at.s) - m };
+    if (!live) html += '<p class="nv-note">Урьдчилан харах горим: ' + day.l + '-ны эхлэл. Тухайн өдөр нь цагаар автоматаар шилжинэ.</p>';
+
+    var target, how, label;
+    if (s.mode === 'at') {
+      var here = s.at;
+      html += '<div class="nv-now"><span class="nv-tag">Одоо</span><h3>' + esc(here.n) + (here.g ? ' <em>групп</em>' : '') + '</h3>' +
+        '<p><b class="num">' + here.s + '–' + here.e + '</b> · үлдсэн <b class="num">' + fmt(s.left) + '</b></p>' + (here.tip ? '<p class="nv-tip">' + esc(here.tip) + '</p>' : '') + '</div>';
+      if (s.next) { target = s.next; how = s.next.how; label = 'Дараа нь · ' + s.next.s; }
+      else if (day.home) { target = HOME; how = day.home; label = 'Дараа нь · байр руу'; }
+    } else if (s.mode === 'go') {
+      target = s.to; how = s.to.how; label = 'Явах · ' + s.to.s + ' гэхэд';
+    } else if (day.home) {
+      target = HOME; how = day.home; label = 'Өдөр дууслаа · байр руу';
+    } else {
+      html += '<p class="nv-msg">Өнөөдрийн хуваарь дууслаа.</p>';
+    }
+
+    if (target) {
+      var d = pos ? dist(pos, target.p) : null, walkMin = d != null ? d / 75 : null;
+      var warn = '';
+      if (s.mode === 'go' && live && d != null) {
+        // Алхах хурдаар (метро бол ×0.35) хүрэх хугацааг тооцоолж хоцролт шалгана
+        var eta = d < 1500 ? walkMin : 12 + d / 1000 * 2.2;
+        var slack = s.left - eta;
+        if (d < 150) warn = '<p class="nv-ok">Ирлээ. Хуваарь ' + target.s + '-д эхэлнэ.</p>';
+        else if (slack < 0) warn = '<p class="nv-late">≈' + fmt(-slack) + ' хоцорч байна.' + (target.hard ? ' Энэ газар цагтай тул шууд яв.' : ' Өмнөх газраас эрт гарах эсвэл энийг товчил.') + '</p>';
+        else if (slack < 10) warn = '<p class="nv-warn">Яг цагтаа. Одоо гараарай.</p>';
+        else warn = '<p class="nv-ok">' + fmt(slack) + ' илүү цаг байна.</p>';
+      }
+      html += '<div class="nv-next"><span class="nv-tag">' + esc(label) + '</span><h3>' + esc(target.n) + (target.g ? ' <em>групп</em>' : '') + '</h3>' +
+        (d != null ? '<p class="num">Чамаас ' + km(d) + (d < 1500 ? ' · алхаад ≈' + fmt(walkMin) : '') + '</p>' : '') + warn +
+        steps(how) + (target.tip ? '<p class="nv-tip">' + esc(target.tip) + '</p>' : '') +
+        '<div class="nv-btns"><a class="nv-go" href="' + gmaps(target.p, d != null && d < 1200) + '" target="_blank" rel="noopener">Google Maps-аар явах</a>' +
+        '<a class="nv-sec" href="#' + day.sec + '">Өдрийн хуваарь</a></div></div>';
+    }
+    html += '<a class="nv-home" href="' + gmaps(HOME.p, false) + '" target="_blank" rel="noopener">Төөрсөн бол: байр руу хамгийн хурдан зам</a>';
+    body.innerHTML = html;
+    body.querySelector('.nv-sec') && body.querySelector('.nv-sec').addEventListener('click', close);
+  }
+
+  function gpsText() {
+    gpsEl.textContent = pos ? 'GPS идэвхтэй' : (gpsErr || 'Байршил тодорхойлж байна…');
+    gpsEl.className = 'nv-gps' + (pos ? ' on' : gpsErr ? ' off' : '');
+  }
+  function startGps() {
+    if (!('geolocation' in navigator)) { gpsErr = 'Энэ утас байршил өгөхгүй байна. Цагаар нь л заана.'; gpsText(); return; }
+    try {
+      watch = navigator.geolocation.watchPosition(function (p) { pos = [p.coords.latitude, p.coords.longitude]; gpsErr = ''; gpsText(); render(); },
+        function (e) { gpsErr = e.code === 1 ? 'Байршлын зөвшөөрөл өгөөгүй. Тохиргооноос зөвшөөрвөл зай, хоцролтыг тооцно.' : 'GPS олдсонгүй. Цагаар нь заана.'; gpsText(); },
+        { enableHighAccuracy: true, maximumAge: 20000, timeout: 20000 });
+    } catch (e) { gpsErr = 'GPS ажиллахгүй байна.'; gpsText(); }
+  }
+  function open() {
+    box.hidden = false; document.body.style.overflow = 'hidden';
+    pick = null; render(); gpsText(); if (watch === null) startGps();
+    tick = setInterval(render, 30000); $('nv-x').focus();
+  }
+  function close() {
+    box.hidden = true; document.body.style.overflow = '';
+    clearInterval(tick); if (watch !== null) { navigator.geolocation.clearWatch(watch); watch = null; }
+    $('nv-open').focus();
+  }
+
+  DAYS.forEach(function (d) {
+    var b = document.createElement('button'); b.type = 'button'; b.setAttribute('role', 'tab'); b.dataset.d = d.d; b.textContent = d.l;
+    b.addEventListener('click', function () { pick = d.d === jst().d ? null : d.d; render(); });
+    daysEl.appendChild(b);
+  });
+  $('nv-open').addEventListener('click', open);
+  $('nv-x').addEventListener('click', close);
+  box.addEventListener('click', function (e) { if (e.target === box) close(); });
+  document.addEventListener('keydown', function (e) { if (!box.hidden && e.key === 'Escape') close(); });
+
+  // Товч дээр дараагийн газрын цагийг харуулна
+  function fab() {
+    var now = jst(), sub = '';
+    DAYS.forEach(function (d) {
+      if (d.d !== now.d) return;
+      var s = state(d, now.m);
+      sub = s.mode === 'go' ? s.to.s + ' ' + s.to.n : s.mode === 'at' ? 'одоо ' + s.at.n : '';
+    });
+    $('nv-fab-sub').textContent = sub;
+  }
+  fab(); setInterval(fab, 60000);
 })();
 </script>
