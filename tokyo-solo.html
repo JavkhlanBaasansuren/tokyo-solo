@@ -317,6 +317,19 @@ a.solo.go:hover { text-decoration: underline; }
 .sos-call:not(.red) { grid-column: span 2; }
 .sos-emb, .sos-phr { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
 .sos-phr b { font-size: 15px; display: block; }
+/* Yen converter */
+.fx-fab { position: fixed; z-index: 40; left: calc(max(16px, env(safe-area-inset-left, 0px)) + 56px); bottom: max(16px, env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 999px; height: 44px; padding: 0 14px; background: var(--surface); color: var(--fg); font: 700 14px var(--font-display); box-shadow: 0 6px 20px rgba(0,0,0,.18), inset 0 0 0 1px var(--line); cursor: pointer; }
+.nv-fab { max-width: calc(100vw - 168px); }
+.fx-row { display: flex; flex-direction: column; gap: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.fx-row label { font-size: 12px; color: var(--muted); }
+.fx-in { display: flex; align-items: center; gap: 8px; }
+.fx-in span { font: 700 26px var(--font-display); color: var(--muted); }
+.fx-in input { flex: 1; min-width: 0; font: 600 30px var(--font-data); color: var(--fg); background: transparent; border: 0; outline: 0; padding: 2px 0; }
+.fx-swap { align-self: center; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 6px 14px; font-size: 13px; cursor: pointer; }
+.fx-quick { display: flex; flex-wrap: wrap; gap: 6px; }
+.fx-quick button { border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 6px 11px; font: 500 13px var(--font-data); cursor: pointer; }
+.fx-rate { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+.fx-rate input { width: 70px; font: 14px var(--font-data); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
 </style>
 
 <div class="wrap">
@@ -1007,7 +1020,7 @@ a.solo.go:hover { text-decoration: underline; }
   var el = $('sos-off');
   function offline() {
     if (!('serviceWorker' in navigator) || !window.caches) { el.textContent = 'Энэ хөтөч офлайн горим дэмжихгүй.'; el.className = 'nv-gps off'; return; }
-    caches.open('tokyo-v2').then(function (c) { return c.keys(); }).then(function (ks) {
+    caches.open('tokyo-v3').then(function (c) { return c.keys(); }).then(function (ks) {
       var n = ks.filter(function (r) { return /solo-img\//.test(r.url); }).length;
       var ok = n >= 100;
       el.textContent = ok ? 'Офлайн бэлэн: интернэтгүй ч хуудас, ' + n + ' зураг нээгдэнэ' : 'Офлайн хадгалж байна… (' + n + ' зураг). WiFi-д нэг удаа нээгээрэй.';
@@ -1017,5 +1030,55 @@ a.solo.go:hover { text-decoration: underline; }
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
     navigator.serviceWorker.register('sw.js').catch(function () {});
   }
+})();
+</script>
+
+<!-- ¥ ↔ ₮ хөрвүүлэгч -->
+<button class="fx-fab" type="button" id="fx-open" aria-haspopup="dialog">¥→₮</button>
+<div class="nv" id="fx" role="dialog" aria-modal="true" aria-labelledby="fx-h" hidden>
+  <div class="nv-card">
+    <div class="nv-top"><h2 id="fx-h">Иен ↔ Төгрөг</h2><button class="nv-x" type="button" id="fx-x" aria-label="Хаах">×</button></div>
+    <div class="fx-row"><label for="fx-a" id="fx-la">Иен</label><div class="fx-in"><span id="fx-sa">¥</span><input id="fx-a" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+    <button class="fx-swap" type="button" id="fx-swap">⇅ Солих</button>
+    <div class="fx-row"><label for="fx-b" id="fx-lb">Төгрөг</label><div class="fx-in"><span id="fx-sb">₮</span><input id="fx-b" inputmode="decimal" autocomplete="off" placeholder="0"></div></div>
+    <div class="fx-quick" id="fx-quick"></div>
+    <div class="fx-rate"><span>Ханш: ¥1 =</span><input id="fx-r" inputmode="decimal"><span>₮</span></div>
+    <p class="nv-tip">Хуудсан дахь үнэ ¥1 = 24₮-өөр тооцсон. 11/6-ны зах зээлийн ханш ≈22.8₮. Сольсон ханшаа оруулбал энэ утсанд хадгалагдана.</p>
+  </div>
+</div>
+<script>
+(function () {
+  var K = 'solo-fx-v1', R = 24, rev = false;
+  try { var v = parseFloat(localStorage.getItem(K)); if (v > 0) R = v; } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+  var box = $('fx'), a = $('fx-a'), b = $('fx-b'), r = $('fx-r'), q = $('fx-quick');
+  function num(s) { return parseFloat(String(s).replace(/[^\d.]/g, '')) || 0; }
+  function fmt(n) { return n ? Math.round(n).toLocaleString('en-US') : ''; }
+  function rate() { return rev ? 1 / R : R; }
+  function fromA() { b.value = fmt(num(a.value) * rate()); }
+  function fromB() { a.value = fmt(num(b.value) / rate()); }
+  function quick() {
+    var list = rev ? [10000, 50000, 100000, 200000, 500000] : [100, 500, 1000, 3000, 5000, 10000];
+    q.innerHTML = '';
+    list.forEach(function (n) {
+      var x = document.createElement('button'); x.type = 'button'; x.textContent = (rev ? '₮' : '¥') + n.toLocaleString('en-US');
+      x.addEventListener('click', function () { a.value = fmt(n); fromA(); }); q.appendChild(x);
+    });
+  }
+  function labels() {
+    $('fx-la').textContent = rev ? 'Төгрөг' : 'Иен'; $('fx-sa').textContent = rev ? '₮' : '¥';
+    $('fx-lb').textContent = rev ? 'Иен' : 'Төгрөг'; $('fx-sb').textContent = rev ? '¥' : '₮';
+  }
+  a.addEventListener('input', fromA); b.addEventListener('input', fromB);
+  a.addEventListener('blur', function () { a.value = fmt(num(a.value)); });
+  r.value = R;
+  r.addEventListener('input', function () { var v = num(r.value); if (v > 0) { R = v; try { localStorage.setItem(K, v); } catch (e) {} fromA(); } });
+  $('fx-swap').addEventListener('click', function () { rev = !rev; var t = a.value; a.value = b.value; b.value = t; labels(); quick(); });
+  function open() { box.hidden = false; document.body.style.overflow = 'hidden'; a.focus(); }
+  function close() { box.hidden = true; document.body.style.overflow = ''; $('fx-open').focus(); }
+  $('fx-open').addEventListener('click', open); $('fx-x').addEventListener('click', close);
+  box.addEventListener('click', function (e) { if (e.target === box) close(); });
+  document.addEventListener('keydown', function (e) { if (!box.hidden && e.key === 'Escape') close(); });
+  labels(); quick();
 })();
 </script>
