@@ -1,0 +1,140 @@
+// Офлайн горим: хуудас, зургийг утсанд хадгална
+const V = 'tokyo-v1';
+const FILES = [
+"./",
+"tokyo-solo.html",
+"solo-img/akiba_1.jpg",
+"solo-img/akiba_2.jpg",
+"solo-img/akiba_3.jpg",
+"solo-img/akiba_4.jpg",
+"solo-img/ameyoko_1.jpg",
+"solo-img/ameyoko_2.jpg",
+"solo-img/ameyoko_3.jpg",
+"solo-img/ameyoko_4.jpg",
+"solo-img/azumabashi_1.jpg",
+"solo-img/azumabashi_2.jpg",
+"solo-img/azumabashi_3.jpg",
+"solo-img/azumabashi_4.jpg",
+"solo-img/azumabashi_n.jpg",
+"solo-img/fuji5_1.jpg",
+"solo-img/ginza_1.jpg",
+"solo-img/ginza_2.jpg",
+"solo-img/ginza_3.jpg",
+"solo-img/ginza_4.jpg",
+"solo-img/godzilla_1.jpg",
+"solo-img/godzilla_2.jpg",
+"solo-img/godzilla_3.jpg",
+"solo-img/godzilla_4.jpg",
+"solo-img/goldengai_1.jpg",
+"solo-img/goldengai_2.jpg",
+"solo-img/goldengai_3.jpg",
+"solo-img/goldengai_4.jpg",
+"solo-img/gyoen_1.jpg",
+"solo-img/gyoen_2.jpg",
+"solo-img/gyoen_3.jpg",
+"solo-img/gyoen_4.jpg",
+"solo-img/hamarikyu_1.jpg",
+"solo-img/hamarikyu_2.jpg",
+"solo-img/hamarikyu_3.jpg",
+"solo-img/honganji_1.jpg",
+"solo-img/honganji_2.jpg",
+"solo-img/honganji_3.jpg",
+"solo-img/kameido_1.jpg",
+"solo-img/kameido_2.jpg",
+"solo-img/kameido_3.jpg",
+"solo-img/kameidotenjin_1.jpg",
+"solo-img/kameidotenjin_2.jpg",
+"solo-img/kameidotenjin_3.jpg",
+"solo-img/kameidotenjin_4.jpg",
+"solo-img/kyunakagawa_1.jpg",
+"solo-img/kyunakagawa_2.jpg",
+"solo-img/kyunakagawa_3.jpg",
+"solo-img/kyunakagawa_4.jpg",
+"solo-img/meiji_1.jpg",
+"solo-img/meiji_2.jpg",
+"solo-img/meiji_3.jpg",
+"solo-img/meiji_4.jpg",
+"solo-img/miyashita_1.jpg",
+"solo-img/miyashita_2.jpg",
+"solo-img/miyashita_3.jpg",
+"solo-img/nakamise_1.jpg",
+"solo-img/nakamise_2.jpg",
+"solo-img/nakamise_3.jpg",
+"solo-img/nakamise_4.jpg",
+"solo-img/narita_1.jpg",
+"solo-img/oishi_1.jpg",
+"solo-img/omoide_1.jpg",
+"solo-img/omoide_2.jpg",
+"solo-img/omoide_3.jpg",
+"solo-img/omoide_4.jpg",
+"solo-img/omotesando_1.jpg",
+"solo-img/omotesando_2.jpg",
+"solo-img/omotesando_3.jpg",
+"solo-img/omotesando_4.jpg",
+"solo-img/parco_1.jpg",
+"solo-img/parco_2.jpg",
+"solo-img/parco_3.jpg",
+"solo-img/parco_4.jpg",
+"solo-img/rainbow_1.jpg",
+"solo-img/rainbow_2.jpg",
+"solo-img/rainbow_3.jpg",
+"solo-img/rainbow_4.jpg",
+"solo-img/senkyaku_1.jpg",
+"solo-img/senkyaku_2.jpg",
+"solo-img/senkyaku_3.jpg",
+"solo-img/senkyaku_4.jpg",
+"solo-img/sensoji_1.jpg",
+"solo-img/sensoji_2.jpg",
+"solo-img/sensoji_3.jpg",
+"solo-img/sensoji_4.jpg",
+"solo-img/shibuya_1.jpg",
+"solo-img/skytree_1.jpg",
+"solo-img/skytree_2.jpg",
+"solo-img/skytree_3.jpg",
+"solo-img/skytree_4.jpg",
+"solo-img/takeshita_1.jpg",
+"solo-img/takeshita_2.jpg",
+"solo-img/takeshita_3.jpg",
+"solo-img/takeshita_4.jpg",
+"solo-img/teamlab_1.jpg",
+"solo-img/teamlab_2.jpg",
+"solo-img/teamlab_3.jpg",
+"solo-img/teamlab_4.jpg",
+"solo-img/tocho_1.jpg",
+"solo-img/tocho_2.jpg",
+"solo-img/tocho_3.jpg",
+"solo-img/tocho_4.jpg",
+"solo-img/tokyotower_1.jpg",
+"solo-img/tokyotower_2.jpg",
+"solo-img/tokyotower_3.jpg",
+"solo-img/tokyotower_4.jpg",
+"solo-img/tsukiji_1.jpg",
+"solo-img/tsukiji_2.jpg",
+"solo-img/tsukiji_3.jpg",
+"solo-img/tsukiji_4.jpg",
+"solo-img/yoyogi_1.jpg",
+"solo-img/yoyogi_2.jpg",
+"solo-img/yoyogi_3.jpg"
+];
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(V).then(c => Promise.all(FILES.map(f => c.add(f).catch(() => null)))).then(() => self.skipWaiting()));
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+});
+self.addEventListener('fetch', e => {
+  const r = e.request;
+  if (r.method !== 'GET') return;
+  const u = new URL(r.url);
+  const page = r.mode === 'navigate' || u.pathname.endsWith('.html');
+  if (page) {
+    // Хуудас: эхлээд интернэтээс (шинэчлэл авна), тасарвал хадгалсныг
+    e.respondWith(fetch(r).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put(r, cp)); return res; })
+      .catch(() => caches.match(r, { ignoreSearch: true }).then(m => m || caches.match('tokyo-solo.html'))));
+    return;
+  }
+  if (u.origin === location.origin || /fonts\.(googleapis|gstatic)\.com$/.test(u.hostname)) {
+    // Зураг, фонт: хадгалсныг шууд
+    e.respondWith(caches.match(r).then(m => m || fetch(r).then(res => { const cp = res.clone(); caches.open(V).then(c => c.put(r, cp)); return res; })));
+  }
+});

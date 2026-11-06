@@ -267,7 +267,7 @@ a.solo.go:hover { text-decoration: underline; }
 .nv-top { display: flex; align-items: center; gap: 10px; }
 .nv-top h2 { font-size: 19px; }
 .nv-clock { color: var(--muted); font-size: 13px; margin-left: auto; }
-.nv-x { border: 0; background: var(--surface); color: var(--fg); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
+.nv-x { margin-left: auto; border: 0; background: var(--surface); color: var(--fg); width: 34px; height: 34px; border-radius: 50%; font-size: 20px; cursor: pointer; box-shadow: inset 0 0 0 1px var(--line); }
 .nv-days { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
 .nv-days button { flex: none; border: 1px solid var(--line); background: var(--surface); color: var(--fg); border-radius: 999px; padding: 5px 11px; font: 500 12.5px var(--font-body); cursor: pointer; }
 .nv-days button[aria-selected="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
@@ -297,6 +297,26 @@ a.solo.go:hover { text-decoration: underline; }
 .nv-gps::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
 .nv-gps.on::before { background: #3fb871; } .nv-gps.off::before { background: #d9534f; }
 .wrap { padding-bottom: 96px; }
+/* SOS */
+.sos-fab { position: fixed; z-index: 40; left: max(16px, env(safe-area-inset-left, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px)); border: 0; border-radius: 999px; width: 48px; height: 44px; background: #c8372d; color: #fff; font: 800 13px var(--font-display); letter-spacing: .04em; box-shadow: 0 6px 20px rgba(0,0,0,.22); cursor: pointer; }
+.nv-fab { max-width: calc(100vw - 96px); }
+.sos-taxi { background: #fff; color: #111; border: 2px solid #111; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 6px; }
+.sos-taxi .nv-tag { color: #555; }
+.sos-jp { font-size: 18px; font-weight: 600; }
+.sos-addr { font-size: 26px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.sos-sub { font-size: 12.5px; color: #555; }
+.sos-edit { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13.5px; }
+.sos-edit summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.sos-edit label { display: flex; flex-direction: column; gap: 4px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.sos-edit textarea, .sos-edit input { font: 15px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.sos-calls { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sos-call { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.sos-call b { font-size: 17px; color: var(--accent); }
+.sos-call.red b { font-size: 24px; color: #c8372d; }
+.sos-call span { font-size: 12px; color: var(--muted); }
+.sos-call:not(.red) { grid-column: span 2; }
+.sos-emb, .sos-phr { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
+.sos-phr b { font-size: 15px; display: block; }
 </style>
 
 <div class="wrap">
@@ -910,5 +930,92 @@ a.solo.go:hover { text-decoration: underline; }
     $('nv-fab-sub').textContent = sub;
   }
   fab(); setInterval(fab, 60000);
+})();
+</script>
+
+<!-- SOS: такси, яаралтай тусламжийн карт + офлайн -->
+<button class="sos-fab" type="button" id="sos-open" aria-haspopup="dialog">SOS</button>
+<div class="nv" id="sos" role="dialog" aria-modal="true" aria-labelledby="sos-h" hidden>
+  <div class="nv-card">
+    <div class="nv-top">
+      <h2 id="sos-h">Такси · Тусламж</h2>
+      <button class="nv-x" type="button" id="sos-x" aria-label="Хаах">×</button>
+    </div>
+
+    <div class="sos-taxi">
+      <span class="nv-tag">Таксины жолоочид үзүүл</span>
+      <p class="sos-jp">この住所までお願いします。</p>
+      <p class="sos-addr" id="sos-addr"></p>
+      <p class="sos-sub">Энэ хаяг руу хүргэж өгнө үү.</p>
+    </div>
+    <details class="sos-edit">
+      <summary>Байрны хаяг, хөтөчийн утсыг оруулах</summary>
+      <label>Байрны хаяг (япон үсгээр, Airbnb-ээс хуулж тавь)<textarea id="sos-in-addr" rows="2" placeholder="東京都江東区大島…"></textarea></label>
+      <label>Хөтөч, группийн ахлагчийн утас<input id="sos-in-tel" type="tel" placeholder="+81 90…"></label>
+      <p class="nv-tip">Энэ утсанд л хадгалагдана.</p>
+    </details>
+
+    <div class="sos-calls">
+      <a class="sos-call red" href="tel:110"><b class="num">110</b><span>Цагдаа · 警察</span></a>
+      <a class="sos-call red" href="tel:119"><b class="num">119</b><span>Түргэн, гал · 救急</span></a>
+      <a class="sos-call" href="tel:+815038162787" id="sos-jnto"><b class="num">050-3816-2787</b><span>Жуулчны 24 цагийн утас (англи)</span></a>
+      <a class="sos-call" id="sos-guide" hidden><b class="num" id="sos-guide-n"></b><span>Хөтөч</span></a>
+    </div>
+
+    <div class="sos-emb">
+      <span class="nv-tag">Монгол Улсын ЭСЯ · Токио</span>
+      <p><b>東京都渋谷区神山町21-4</b><br><span class="nv-tip">21-4 Kamiyama-cho, Shibuya-ku · Shibuya буудлаас ≈15 мин алхана</span></p>
+      <div class="nv-btns"><a class="nv-sec" href="tel:+81334692088">📞 03-3469-2088</a><a class="nv-sec" href="https://www.google.com/maps/dir/?api=1&destination=Embassy+of+Mongolia+Tokyo&travelmode=transit" target="_blank" rel="noopener">Зам</a></div>
+      <p class="nv-tip">Паспортоо гээвэл: эхлээд ойрын цагдаагийн хайрцаг (交番, koban)-д мэдэгдэж тодорхойлолт ав, дараа нь ЭСЯ.</p>
+    </div>
+
+    <div class="sos-phr">
+      <span class="nv-tag">Хэрэгтэй үгс</span>
+      <p><b>道に迷いました。</b> Мичи ни маёимашита · Төөрчихлөө</p>
+      <p><b>大島駅はどこですか？</b> Оожима эки ва доко дэсү ка · Ojima буудал хаана вэ?</p>
+      <p><b>助けてください！</b> Тасүкэтэ кудасай · Туслаач!</p>
+      <p><b>英語を話せますか？</b> Эйго о ханасэмасү ка · Англиар ярих уу?</p>
+    </div>
+
+    <p class="nv-gps" id="sos-off">Офлайн горим шалгаж байна…</p>
+  </div>
+</div>
+<script>
+(function () {
+  var K = 'solo-sos-v1', st = {};
+  try { st = JSON.parse(localStorage.getItem(K) || '{}') || {}; } catch (e) {}
+  var $ = function (id) { return document.getElementById(id); };
+  var box = $('sos'), inA = $('sos-in-addr'), inT = $('sos-in-tel');
+  var DEF = '東京都江東区大島（都営新宿線 大島駅）';
+  function paint() {
+    $('sos-addr').textContent = st.addr || DEF;
+    var t = (st.tel || '').trim();
+    $('sos-guide').hidden = !t; $('sos-guide-n').textContent = t; $('sos-guide').href = 'tel:' + t.replace(/[^\d+]/g, '');
+  }
+  function save() { st.addr = inA.value.trim(); st.tel = inT.value.trim(); try { localStorage.setItem(K, JSON.stringify(st)); } catch (e) {} paint(); }
+  inA.value = st.addr || ''; inT.value = st.tel || '';
+  inA.addEventListener('input', save); inT.addEventListener('input', save);
+  paint();
+  function open() { box.hidden = false; document.body.style.overflow = 'hidden'; $('sos-x').focus(); offline(); }
+  function close() { box.hidden = true; document.body.style.overflow = ''; $('sos-open').focus(); }
+  $('sos-open').addEventListener('click', open);
+  $('sos-x').addEventListener('click', close);
+  box.addEventListener('click', function (e) { if (e.target === box) close(); });
+  document.addEventListener('keydown', function (e) { if (!box.hidden && e.key === 'Escape') close(); });
+
+  // Офлайн горим
+  var el = $('sos-off');
+  function offline() {
+    if (!('serviceWorker' in navigator) || !window.caches) { el.textContent = 'Энэ хөтөч офлайн горим дэмжихгүй.'; el.className = 'nv-gps off'; return; }
+    caches.open('tokyo-v1').then(function (c) { return c.keys(); }).then(function (ks) {
+      var n = ks.filter(function (r) { return /solo-img\//.test(r.url); }).length;
+      var ok = n >= 100;
+      el.textContent = ok ? 'Офлайн бэлэн: интернэтгүй ч хуудас, ' + n + ' зураг нээгдэнэ' : 'Офлайн хадгалж байна… (' + n + ' зураг). WiFi-д нэг удаа нээгээрэй.';
+      el.className = 'nv-gps ' + (ok ? 'on' : '');
+    }).catch(function () {});
+  }
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
 })();
 </script>
