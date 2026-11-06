@@ -1033,7 +1033,7 @@ a.solo.go:hover { text-decoration: underline; }
   var el = $('sos-off');
   function offline() {
     if (!('serviceWorker' in navigator) || !window.caches) { el.textContent = 'Энэ хөтөч офлайн горим дэмжихгүй.'; el.className = 'nv-gps off'; return; }
-    caches.open('tokyo-v4').then(function (c) { return c.keys(); }).then(function (ks) {
+    caches.open('tokyo-v5').then(function (c) { return c.keys(); }).then(function (ks) {
       var n = ks.filter(function (r) { return /solo-img\//.test(r.url); }).length;
       var ok = n >= 100;
       el.textContent = ok ? 'Офлайн бэлэн: интернэтгүй ч хуудас, ' + n + ' зураг нээгдэнэ' : 'Офлайн хадгалж байна… (' + n + ' зураг). WiFi-д нэг удаа нээгээрэй.';
@@ -1104,8 +1104,14 @@ a.solo.go:hover { text-decoration: underline; }
   var ids = links.map(function (a) { return a.getAttribute('href').slice(1); });
   var panels = [].slice.call(document.querySelectorAll('[data-tab]'));
   var DATES = { g7: '2026-11-07', eve: '2026-11-08', d1: '2026-11-09', g10: '2026-11-10', d2: '2026-11-11', g12: '2026-11-12' };
-  var today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10), todayId = null;
-  for (var k in DATES) if (DATES[k] === today) todayId = k;
+  // Токиогийн огноогоор өнөөдрийн өдрийг сонгоно (аяллын өмнө: 11/7, дараа нь: Тойм)
+  var today, todayId;
+  function calcToday() {
+    today = new Date(Date.now() + 9 * 3600e3).toISOString().slice(0, 10); todayId = null;
+    for (var k in DATES) if (DATES[k] === today) todayId = k;
+    if (!todayId && today < DATES.g7) todayId = 'g7';
+  }
+  calcToday();
   document.documentElement.classList.add('js-tabs');
 
   // Өдөр бүрийн доор өмнөх / дараагийн товч
@@ -1137,9 +1143,21 @@ a.solo.go:hover { text-decoration: underline; }
     if (el) el.scrollIntoView(); else window.scrollTo(0, 0);
   }
   function route() { var h = decodeURIComponent(location.hash.slice(1)); show(tabOf(h) || todayId || 'trip', h); }
-  links.forEach(function (a, i) { if (ids[i] === todayId) a.classList.add('today'); });
+  function mark() { links.forEach(function (a, i) { a.classList.toggle('today', ids[i] === todayId && DATES[todayId] === today); }); }
+  function openToday() {
+    // Нээх бүрт хуучин #-ийг үл тоож өнөөдрийг харуулна
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    mark(); show(todayId || 'trip');
+  }
   window.addEventListener('hashchange', route);
-  route();
+  openToday();
+  // Утсанд нээлттэй үлдээд өдөр солигдвол дахин нээхэд шинэ өдөр рүү шилжинэ
+  var lastDay = today;
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    calcToday();
+    if (today !== lastDay) { lastDay = today; openToday(); }
+  });
 
   // Шударч өдөр солих
   var x0 = null, y0 = 0;

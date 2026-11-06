@@ -1,5 +1,5 @@
 // Офлайн горим: хуудас, зургийг утсанд хадгална
-const V = 'tokyo-v4';
+const V = 'tokyo-v5';
 const FILES = [
 "./",
 "tokyo-solo.html",
