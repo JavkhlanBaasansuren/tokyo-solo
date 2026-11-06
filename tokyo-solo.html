@@ -719,7 +719,7 @@ a.solo.go:hover { text-decoration: underline; }
 <script>
 (function () {
   // Байр: Ojima буудал (Toei Shinjuku шугам). Бусад нь хуудсан дахь газрууд.
-  var HOME = { n: 'Байр (Ojima буудал)', p: [35.6898, 139.8270] };
+  var HOME = { n: 'Байр · Ojima 7-chome', p: [35.6910, 139.8310], q: '〒136-0072 東京都江東区大島7丁目 Green mart Otomo' };
   var DAYS = [
     { d: '2026-11-07', l: '11/7 Бя', sec: 'g7', stops: [
       { s: '14:30', e: '16:30', n: 'Нарита нисэх буудал', p: [35.7720, 140.3929], g: 1,
@@ -810,7 +810,7 @@ a.solo.go:hover { text-decoration: underline; }
   }
   function km(m) { return m < 1000 ? Math.round(m / 10) * 10 + ' м' : (m / 1000).toFixed(1) + ' км'; }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-  function gmaps(p, walk) { return 'https://www.google.com/maps/dir/?api=1&destination=' + p[0] + ',' + p[1] + '&travelmode=' + (walk ? 'walking' : 'transit'); }
+  function gmaps(p, walk, q) { return 'https://www.google.com/maps/dir/?api=1&destination=' + (q ? encodeURIComponent(q) : p[0] + ',' + p[1]) + '&travelmode=' + (walk ? 'walking' : 'transit'); }
   function steps(list) {
     return '<ol class="nv-steps">' + list.map(function (t) {
       var k = t.charAt(0), c = LC[k], walk = /^Алх:/.test(t);
@@ -878,10 +878,10 @@ a.solo.go:hover { text-decoration: underline; }
       html += '<div class="nv-next"><span class="nv-tag">' + esc(label) + '</span><h3>' + esc(target.n) + (target.g ? ' <em>групп</em>' : '') + '</h3>' +
         (d != null ? '<p class="num">Чамаас ' + km(d) + (d < 1500 ? ' · алхаад ≈' + fmt(walkMin) : '') + '</p>' : '') + warn +
         steps(how) + (target.tip ? '<p class="nv-tip">' + esc(target.tip) + '</p>' : '') +
-        '<div class="nv-btns"><a class="nv-go" href="' + gmaps(target.p, d != null && d < 1200) + '" target="_blank" rel="noopener">Google Maps-аар явах</a>' +
+        '<div class="nv-btns"><a class="nv-go" href="' + gmaps(target.p, d != null && d < 1200, target.q) + '" target="_blank" rel="noopener">Google Maps-аар явах</a>' +
         '<a class="nv-sec" href="#' + day.sec + '">Өдрийн хуваарь</a></div></div>';
     }
-    html += '<a class="nv-home" href="' + gmaps(HOME.p, false) + '" target="_blank" rel="noopener">Төөрсөн бол: байр руу хамгийн хурдан зам</a>';
+    html += '<a class="nv-home" href="' + gmaps(HOME.p, false, HOME.q) + '" target="_blank" rel="noopener">Төөрсөн бол: байр руу хамгийн хурдан зам</a>';
     body.innerHTML = html;
     body.querySelector('.nv-sec') && body.querySelector('.nv-sec').addEventListener('click', close);
   }
@@ -986,7 +986,7 @@ a.solo.go:hover { text-decoration: underline; }
   try { st = JSON.parse(localStorage.getItem(K) || '{}') || {}; } catch (e) {}
   var $ = function (id) { return document.getElementById(id); };
   var box = $('sos'), inA = $('sos-in-addr'), inT = $('sos-in-tel');
-  var DEF = '東京都江東区大島（都営新宿線 大島駅）';
+  var DEF = '〒136-0072 東京都江東区大島7丁目（Green mart Otomo 付近）';
   function paint() {
     $('sos-addr').textContent = st.addr || DEF;
     var t = (st.tel || '').trim();
@@ -1007,7 +1007,7 @@ a.solo.go:hover { text-decoration: underline; }
   var el = $('sos-off');
   function offline() {
     if (!('serviceWorker' in navigator) || !window.caches) { el.textContent = 'Энэ хөтөч офлайн горим дэмжихгүй.'; el.className = 'nv-gps off'; return; }
-    caches.open('tokyo-v1').then(function (c) { return c.keys(); }).then(function (ks) {
+    caches.open('tokyo-v2').then(function (c) { return c.keys(); }).then(function (ks) {
       var n = ks.filter(function (r) { return /solo-img\//.test(r.url); }).length;
       var ok = n >= 100;
       el.textContent = ok ? 'Офлайн бэлэн: интернэтгүй ч хуудас, ' + n + ' зураг нээгдэнэ' : 'Офлайн хадгалж байна… (' + n + ' зураг). WiFi-д нэг удаа нээгээрэй.';
